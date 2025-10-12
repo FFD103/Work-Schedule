@@ -7,15 +7,8 @@ on:
   workflow_dispatch:
     # Allows you to manually run the script from the Actions tab
 
-# Set permissions for the entire workflow
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
-  # Build job: Runs the Python script to generate the HTML file
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -37,21 +30,14 @@ jobs:
           ALADTEC_PASSWORD: ${{ secrets.ALADTEC_PASSWORD }}
           MEMBER_DATA: ${{ secrets.MEMBER_DATA }}
         run: python get_schedule.py
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs
-
-  # Deploy job: Takes the generated file and publishes it to GitHub Pages
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
+      
+      # This action now handles the .nojekyll file and deployment in one step
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # This tells the action to publish the contents of the 'docs' folder
+          publish_dir: ./docs
+          # This ensures the .nojekyll file is created to disable Jekyll
+          enable_jekyll: false
 
