@@ -7,12 +7,16 @@ on:
   workflow_dispatch:
     # Allows you to manually run the script from the Actions tab
 
+# Set permissions for the entire workflow
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  build-and-deploy:
+  # Build job: Runs the Python script to generate the HTML file
+  build:
     runs-on: ubuntu-latest
-    # Add permissions for the deployment action
-    permissions:
-      contents: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -34,12 +38,20 @@ jobs:
           MEMBER_DATA: ${{ secrets.MEMBER_DATA }}
         run: python get_schedule.py
 
-      - name: Create .nojekyll file
-        run: touch docs/.nojekyll
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+          path: ./docs
+
+  # Deploy job: Takes the generated file and publishes it to GitHub Pages
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
 
