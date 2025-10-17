@@ -34,6 +34,15 @@ jobs:
           MEMBER_DATA: ${{ secrets.MEMBER_DATA }}
         run: python get_schedule.py
 
+      # --- THIS IS THE NEW DIAGNOSTIC STEP ---
+      - name: Verify generated files
+        run: |
+          echo "Listing all files in the workspace..."
+          ls -R
+          echo "---"
+          echo "Listing contents of the 'docs' folder specifically..."
+          ls -l docs
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
