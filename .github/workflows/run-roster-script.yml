@@ -2,10 +2,8 @@ name: Generate Daily Roster
 
 on:
   schedule:
-    # Runs automatically every hour at the 5-minute mark
     - cron: '5 * * * *'
   workflow_dispatch:
-    # Allows you to manually run the script from the Actions tab
 
 jobs:
   build-and-deploy:
@@ -30,14 +28,14 @@ jobs:
           ALADTEC_PASSWORD: ${{ secrets.ALADTEC_PASSWORD }}
           MEMBER_DATA: ${{ secrets.MEMBER_DATA }}
         run: python get_schedule.py
-      
-      # This action now handles the .nojekyll file and deployment in one step
+
+      # --- THIS IS THE NEW DEBUG STEP ---
+      - name: List files in workspace
+        run: ls -R
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # This tells the action to publish the contents of the 'docs' folder
           publish_dir: ./docs
-          # This ensures the .nojekyll file is created to disable Jekyll
           enable_jekyll: false
-
