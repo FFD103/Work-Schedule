@@ -2,16 +2,13 @@ name: Generate Daily Roster
 
 on:
   schedule:
+    # Runs automatically every hour at the 5-minute mark
     - cron: '5 * * * *'
   workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+    # Allows you to manually run the script from the Actions tab
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -33,29 +30,14 @@ jobs:
           ALADTEC_PASSWORD: ${{ secrets.ALADTEC_PASSWORD }}
           MEMBER_DATA: ${{ secrets.MEMBER_DATA }}
         run: python get_schedule.py
-
-      # --- THIS IS THE NEW DIAGNOSTIC STEP ---
-      - name: Verify generated files
-        run: |
-          echo "Listing all files in the workspace..."
-          ls -R
-          echo "---"
-          echo "Listing contents of the 'docs' folder specifically..."
-          ls -l docs
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
+      
+      # This action now handles the .nojekyll file and deployment in one step
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # This tells the action to publish the contents of the 'docs' folder
+          publish_dir: ./docs
+          # This ensures the .nojekyll file is created to disable Jekyll
+          enable_jekyll: false
 
